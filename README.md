@@ -7,11 +7,12 @@ Based on:
 - HTML, Javascript
 
 ### How to setup and run:
-The following will download all necessary dependencies.
 1) Set up Java SDK, for example Java 17
-2) run:
-   ```mvn build```
+2) Set up Maven if necessary
+The following will download all necessary dependencies.
 3) run:
+   ```mvn build```
+4) run:
    ```mvn deploy```
 or run the following file:
 src/main/java/com/example/demo/DemoApplication.java
