@@ -29,67 +29,66 @@
 <script type="module">
 
     import * as THREE from 'three';
-
     import Stats from 'three/addons/libs/stats.module.js';
-
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-
+    import TWEEN from 'three/addons/libs/tween.module.js';
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-    import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
-    let mixer;
-
+    let mixer, robot;
     const clock = new THREE.Clock();
-    const container = document.getElementById( 'container' );
-
+    const container = document.getElementById('container');
     const stats = new Stats();
-    container.appendChild( stats.dom );
-
-    const renderer = new THREE.WebGLRenderer( { antialias: true } );
-    renderer.setPixelRatio( window.devicePixelRatio );
-    renderer.setSize( window.innerWidth, window.innerHeight );
-    container.appendChild( renderer.domElement );
-
-    const pmremGenerator = new THREE.PMREMGenerator( renderer );
-
+    container.appendChild(stats.dom);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    container.appendChild(renderer.domElement);
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color( 0xffffff );
-    scene.environment = pmremGenerator.fromScene( new RoomEnvironment( renderer ), 0.04 ).texture;
-
-    const camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
-    camera.position.set( 15, 10, 15);
-
-    const controls = new OrbitControls( camera, renderer.domElement );
-    controls.target.set( 11, 6, 0 );
+    scene.background = new THREE.Color(0xffffff);
+    scene.environment = pmremGenerator.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
+    camera.position.set(15, 10, 15);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(11, 6, 0);
     controls.update();
     controls.enablePan = false;
     controls.enableDamping = true;
 
     const loader = new GLTFLoader();
-    loader.load('/models/geometry_panic__factory.glb', function ( gltf ) {
-
+    loader.load('/models/geometry_panic__factory.glb', function (gltf) {
         const model = gltf.scene;
-        model.position.set( 1, 1, 1 );
-        model.scale.set( 1, 1, 1 );
-        scene.add( model );
+        model.position.set(1, 1, 1);
+        model.scale.set(1, 1, 1);
+        scene.add(model);
 
-        mixer = new THREE.AnimationMixer( model );
-        mixer.clipAction(gltf.animations[0]).play();
+        const robotParts = ['f_w001_335', 'b_w001_332', 'robo_base001_336', 'eye001_334', 'elevator001_333']; // Add more names as needed
+        const robot = robotParts.map(name => model.getObjectByName(name));
 
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowRight') {
+                robot.forEach(obj => {
+                    let targetPosition = { x: obj.position.x + 1 }; // Target position for each object
+                    let tween = new TWEEN.Tween(obj.position).to(targetPosition, 1000); // 1000 milliseconds for the transition
+                    tween.start();
+                });
+
+            }
+        });
+
+        mixer = new THREE.AnimationMixer(model);
+        // mixer.clipAction(gltf.animations[0]).play();
         animate();
-
-    }, undefined, function ( e ) {
-        console.error( e );
-    } );
-
+    }, undefined, function (e) {
+        console.error(e);
+    });
 
     window.onresize = function () {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
-        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.setSize(window.innerWidth, window.innerHeight);
     };
-
 
     function animate() {
         requestAnimationFrame(animate);
@@ -97,8 +96,9 @@
         mixer.update(delta);
         controls.update();
         stats.update();
-        renderer.render( scene, camera );
-    }
+        TWEEN.update();
+        renderer.render(scene, camera);
+    };
 
 
 </script>
