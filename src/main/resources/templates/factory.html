@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="lv" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>three.js webgl - animation - keyframes</title>
+    <title>Robot Factory Game</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link type="text/css" rel="stylesheet" th:href="@{/main.css}">
     <style>
         body {
-            background-color: #fff;
+            background-color: #000;
             color: #000;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vw;
             overflow-x: hidden;
             overflow-y: hidden;
         }
@@ -45,17 +45,17 @@
     const stats = new Stats();
     container.appendChild(stats.dom);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    container.appendChild(renderer.domElement);
-    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    let renderer = new THREE.WebGLRenderer( { antialias: true } );
+    renderer.setPixelRatio( window.devicePixelRatio );
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    document.body.appendChild( renderer.domElement );
+    const pmremGenerator = new THREE.PMREMGenerator( renderer );
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xffffff);
-    scene.environment = pmremGenerator.fromScene(new RoomEnvironment(renderer), 0.01).texture;
+    scene.environment = pmremGenerator.fromScene( new RoomEnvironment(), 0.04 ).texture;
 
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
-    camera.position.set(15, 10, 15);
+    camera.position.set(15, 12, 11);
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.target.set(11, 6, 0);
     controls.update();
@@ -63,23 +63,35 @@
     controls.enableDamping = true;
 
     const loader = new GLTFLoader();
-    loader.load('/models/robot-factory-4.glb', function (gltf) {
+    loader.load('/models/robot-factory-7.glb', function (gltf) {
         const model = gltf.scene;
         model.position.set(1, 1, 1);
         model.scale.set(1, 1, 1);
         scene.add(model);
 
-        const robotParts = ['f_w001_335', 'b_w001_332', 'robo_base001_336', 'eye001_334', 'elevator001_333'];
-        const robot = robotParts.map(name => model.getObjectByName(name));
+        const robotParent = model.getObjectByName('Robot');
+        const robot = robotParent.getObjectByName('Object_661');
 
         document.addEventListener('keydown', (event) => {
-            if (event.key === 'ArrowRight') {
-                robot.forEach(obj => {
-                    let targetPosition = { x: obj.position.x + 1 }; // Target position for each object
-                    let tween = new TWEEN.Tween(obj.position).to(targetPosition, 1000); // 1000 milliseconds for the transition
-                    tween.start();
-                });
+            const rotationAmount = Math.PI / 18; // Adjust rotation speed
+            const moveAmount = 0.1; // Adjust movement speed
+            const tweenDuration = 1000; // Duration in milliseconds
 
+            if (robot) {
+                switch (event.key) {
+                    case 'ArrowUp':
+                        robot.translateZ(moveAmount);
+                        break;
+                    case 'ArrowDown':
+                        robot.translateZ(-moveAmount);
+                        break;
+                    case 'ArrowLeft':
+                        robot.rotation.x += rotationAmount;
+                        break;
+                    case 'ArrowRight':
+                        robot.rotation.x -= rotationAmount;
+                        break;
+                }
             }
         });
 
