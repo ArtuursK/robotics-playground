@@ -55,9 +55,9 @@
     scene.environment = pmremGenerator.fromScene( new RoomEnvironment(), 0.04 ).texture;
 
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
-    camera.position.set(15, 12, 11);
+    camera.position.set(19, 7, 8);
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.target.set(11, 6, 0);
+    controls.target.set(12, 5, 0);
     controls.update();
     controls.enablePan = false;
     controls.enableDamping = true;
@@ -72,28 +72,75 @@
         const robotParent = model.getObjectByName('Robot');
         const robot = robotParent.getObjectByName('Object_661');
 
+        let isTweenActive = false; //necessary to avoid drifting sideways
         document.addEventListener('keydown', (event) => {
-            const rotationAmount = Math.PI / 18; // Adjust rotation speed
-            const moveAmount = 0.1; // Adjust movement speed
-            const tweenDuration = 1000; // Duration in milliseconds
+            if (robot && !isTweenActive && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+                isTweenActive = true;
+                // Duration in milliseconds
+                const tweenDuration = 1000;
+                // Adjust movement and rotation speeds
+                const moveAmount = 1;
+                const rotationAmount = Math.PI / 4; //45-degree angle turn
 
-            if (robot) {
+                let targetPosition = new THREE.Vector3();
+                let targetRotation = new THREE.Euler();
+                let tween;
                 switch (event.key) {
                     case 'ArrowUp':
-                        robot.translateZ(moveAmount);
+                        targetPosition.set(0, 0, moveAmount);
+                        targetPosition.applyQuaternion(robot.quaternion);
+                        targetPosition.add(robot.position);
+                        tween = new TWEEN.Tween(robot.position).to({
+                            x: targetPosition.x,
+                            y: targetPosition.y,
+                            z: targetPosition.z
+                        }, tweenDuration).onComplete(() => {
+                            isTweenActive = false;
+                        });
                         break;
+
                     case 'ArrowDown':
-                        robot.translateZ(-moveAmount);
+                        targetPosition.set(0, 0, -moveAmount);
+                        targetPosition.applyQuaternion(robot.quaternion);
+                        targetPosition.add(robot.position);
+
+                        tween = new TWEEN.Tween(robot.position).to({
+                            x: targetPosition.x,
+                            y: targetPosition.y,
+                            z: targetPosition.z
+                        }, tweenDuration).onComplete(() => {
+                            isTweenActive = false;
+                        });
                         break;
+
                     case 'ArrowLeft':
-                        robot.rotation.x += rotationAmount;
+                        // Rotate left
+                        targetRotation.set(robot.rotation.x + rotationAmount, 0, 0);
+                        tween = new TWEEN.Tween(robot.rotation).to({
+                            x: targetRotation.x
+                        }, tweenDuration).easing(TWEEN.Easing.Quadratic.Out).onComplete(() => {
+                            isTweenActive = false;
+                        });
                         break;
+
                     case 'ArrowRight':
-                        robot.rotation.x -= rotationAmount;
+                        // Rotate right
+                        targetRotation.set(robot.rotation.x - rotationAmount, 0, 0);
+                        tween = new TWEEN.Tween(robot.rotation).to({
+                            x: targetRotation.x
+                        }, tweenDuration).easing(TWEEN.Easing.Quadratic.Out).onComplete(() => {
+                            isTweenActive = false;
+                        });
                         break;
+                }
+
+                // Start the tween if it's defined
+                if (tween) {
+                    tween.start();
                 }
             }
         });
+
 
         mixer = new THREE.AnimationMixer(model);
         mixer.clipAction(gltf.animations[0]).play();
