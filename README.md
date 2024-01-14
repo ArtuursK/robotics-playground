@@ -43,4 +43,6 @@ ThreeJS examples can be found at https://threejs.org/examples/#webgl_animation_k
 
 - see also:
   - https://github.com/glumb/robot-gui
+  - https://threejs.org/editor/
+  
 
