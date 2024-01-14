@@ -12,9 +12,9 @@ public class MainController {
         return "game";
     }
 
-    @RequestMapping(value = "/factory-game", method = RequestMethod.GET)
-    public String getFactoryGame(HttpServletRequest request) {
-        return "factory-game";
+    @RequestMapping(value = "/factory", method = RequestMethod.GET)
+    public String getFactory(HttpServletRequest request) {
+        return "factory";
     }
 
     @RequestMapping(value = "/robot", method = RequestMethod.GET)
@@ -22,8 +22,4 @@ public class MainController {
         return "robot";
     }
 
-    @RequestMapping(value = "/robot2", method = RequestMethod.GET)
-    public String getRobot2(HttpServletRequest request) {
-        return "robot2";
-    }
 }
