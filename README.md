@@ -1,9 +1,10 @@
 # robotics-playground
+A template for educational games and simulations
 
 Based on:
 - Thymeleaf
 - ThreeJS and WebGL
-- Java
+- Java, Spring
 - HTML, Javascript
 
 ### How to setup and run:

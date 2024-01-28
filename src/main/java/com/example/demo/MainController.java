@@ -9,12 +9,12 @@ public class MainController {
 
     @RequestMapping(value = "/game", method = RequestMethod.GET)
     public String getGame(HttpServletRequest request) {
-        return "game";
-    }
+        //idejas modifikācijām:
+        // vairāku spēlētāju lokālā tīklā
+        //  - futbols
+        //  - tautas bumba
 
-    @RequestMapping(value = "/factory", method = RequestMethod.GET)
-    public String getFactory(HttpServletRequest request) {
-        return "factory";
+        return "game";
     }
 
     @RequestMapping(value = "/robot", method = RequestMethod.GET)

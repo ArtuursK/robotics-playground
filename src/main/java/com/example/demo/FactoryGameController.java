@@ -1,15 +1,20 @@
 package com.example.demo;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 @Controller
 public class FactoryGameController {
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     //TODO: this controller will contain endpoints that can send events (SSE) to page
     // to control robots and other aspects of game
@@ -20,7 +25,12 @@ public class FactoryGameController {
     // picked up by JS in the page and update the scene.
 
     @RequestMapping(value = "/", method = RequestMethod.GET)
-    public String getGame(HttpServletRequest request) {
+    public String getFactoryGameRootPath(HttpServletRequest request) {
+        return "factory";
+    }
+
+    @RequestMapping(value = "/factory", method = RequestMethod.GET)
+    public String getFactoryGameFactoryPath(HttpServletRequest request) {
         return "factory";
     }
 
@@ -29,10 +39,12 @@ public class FactoryGameController {
         return "online-factory";
     }
 
-    @MessageMapping("/online-factory-broadcast")
-    @SendTo("/topic/actions")
-    public String broadcastMessage(@Payload String message) {
-        return "You have received a message: " + message;
+    @PostMapping("/online-factory/robot/move")
+    public ResponseEntity<?> moveFactoryRobot(@RequestBody RobotCommand command) {
+        System.out.println("Received command action: " + command.getAction());
+        System.out.println("Received command duration: " + command.getDuration());
+        messagingTemplate.convertAndSend("/topic/move", command);
+        return ResponseEntity.ok().build();
     }
 
 
