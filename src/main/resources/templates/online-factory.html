@@ -131,52 +131,66 @@
     //logic to move the robot forward or backward
     function moveRobot(direction, duration) {
         if (robot && !isTweenActive) {
-            isTweenActive = true;
-            const moveAmount = direction === 'forward' ? 1 : -1;
-            let targetPosition = new THREE.Vector3();
-            let tween;
-            targetPosition.set(0, 0, moveAmount);
-            targetPosition.applyQuaternion(robot.quaternion);
-            targetPosition.add(robot.position);
+            let i = 0;
 
-            tween = new TWEEN.Tween(robot.position).to({
-                x: targetPosition.x,
-                y: targetPosition.y,
-                z: targetPosition.z
-            }, duration).onComplete(() => {
-                isTweenActive = false;
-            });
-            // Start the tween if it's defined
-            if (tween) {
-                tween.start();
-            }
+            //duration is specified in seconds (steps), each step takes 1 second.
+            const movingStep = () => {
+                if (i < duration) {
+                    isTweenActive = true;
+                    const moveAmount = direction === 'forward' ? 1 : -1;
+                    let targetPosition = new THREE.Vector3();
+                    let tween;
+                    targetPosition.set(0, 0, moveAmount);
+                    targetPosition.applyQuaternion(robot.quaternion);
+                    targetPosition.add(robot.position);
+
+                    tween = new TWEEN.Tween(robot.position).to({
+                        x: targetPosition.x,
+                        y: targetPosition.y,
+                        z: targetPosition.z
+                    }, 1000).onComplete(() => {
+                        isTweenActive = false;
+                        i++;
+                        movingStep(); // call the next turn after the current one completes
+                    });
+                    tween.start();
+                }
+            };
+            movingStep(); // start the first movement
         }
-
     }
 
 
-    //logic to move the robot forward or backward
+    //logic to turn the robot left or right
     function turnRobot(direction, duration) {
         if (robot && !isTweenActive) {
-            isTweenActive = true;
+            let i = 0;
             const rotationAmount = direction === 'left' ? Math.PI / 2 : -Math.PI / 2;
-            let targetRotation = new THREE.Euler();
-            let tween;
 
-            targetRotation.set(robot.rotation.x + rotationAmount, 0, 0);
-            tween = new TWEEN.Tween(robot.rotation).to({
-                x: targetRotation.x
-            }, duration).easing(TWEEN.Easing.Quadratic.Out).onComplete(() => {
-                isTweenActive = false;
-            });
+            //duration is specified in seconds (steps), each step takes 1 second.
+            const turnStep = () => {
+                if (i < duration) {
+                    isTweenActive = true;
+                    let targetRotation = new THREE.Euler();
+                    targetRotation.set(robot.rotation.x + rotationAmount, 0, 0);
 
-            // Start the tween if it's defined
-            if (tween) {
-                tween.start();
-            }
+                    let tween = new TWEEN.Tween(robot.rotation).to({
+                        x: targetRotation.x
+                    }, 1000).easing(TWEEN.Easing.Quadratic.Out)
+                    .onComplete(() => {
+                        isTweenActive = false;
+                        i++;
+                        turnStep(); // call the next turn after the current one completes
+                    });
+
+                    tween.start();
+                }
+            };
+
+            turnStep(); // start the first turn
         }
-
     }
+
 
 
 </script>

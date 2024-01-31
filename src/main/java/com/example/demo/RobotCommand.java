@@ -2,9 +2,7 @@ package com.example.demo;
 
 public class RobotCommand {
     private String action; // e.g., "forward", "backward", "left", "right"
-    private int duration; // duration in miliseconds
-    // getters and setters
-
+    private int duration; // duration in seconds
 
     public String getAction() {
         return action;
