@@ -41,8 +41,6 @@ public class FactoryGameController {
 
     @PostMapping("/online-factory/robot/move")
     public ResponseEntity<?> moveFactoryRobot(@RequestBody RobotCommand command) {
-        System.out.println("Received command action: " + command.getAction());
-        System.out.println("Received command duration: " + command.getDuration());
         messagingTemplate.convertAndSend("/topic/move", command);
         return ResponseEntity.ok().build();
     }
