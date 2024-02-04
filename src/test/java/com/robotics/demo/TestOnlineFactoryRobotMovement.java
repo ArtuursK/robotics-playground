@@ -17,7 +17,7 @@ public class TestOnlineFactoryRobotMovement {
             action; // e.g., "forward", "backward", "left", "right"
             duration; // duration in miliseconds
          */
-        String json = "{\"playerId\":\"c51bb04a-ca91-4032-95c3-f4f35b19f207\", \"action\":\"forward\", \"duration\":6}";
+        String json = "{\"playerId\":\"fbb64a57-514d-4598-a695-5621fe87c97a\", \"action\":\"backward\", \"duration\":2}";
 
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()

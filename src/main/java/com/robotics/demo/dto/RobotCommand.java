@@ -1,4 +1,4 @@
-package com.robotics.demo;
+package com.robotics.demo.dto;
 
 public class RobotCommand {
 

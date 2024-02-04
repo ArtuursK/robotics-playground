@@ -53,10 +53,9 @@
                 handleRobotMovement(command.playerId, command.action, command.duration);
             });
 
-            client.subscribe('/topic/game-player-update', message => {
+            client.subscribe('/topic/new-player', message => {
                 console.log(`Game player update received: ${message.body}`)
-                const playerId = JSON.parse(message.body);
-                handleNewPlayer(playerId);
+                handleNewPlayer(message.body);
             });
         }
     });
@@ -98,6 +97,9 @@
         scene.add(model);
 
         robot = model.getObjectByName('Robot').getObjectByName('Object_661');
+        //console.log(robot.position);
+        //console.log(robot.rotation);
+        robot.visible = false;
 
         mixer = new THREE.AnimationMixer(model);
         mixer.clipAction(gltf.animations[0]).play();
@@ -105,6 +107,23 @@
     }, undefined, function (e) {
         console.error(e);
     });
+
+    if(scene) {
+        // Example URL - adjust according to your actual API endpoint
+        fetch('/online-factory/game-state')
+            .then(response => response.json())
+            .then(gameState => {
+                gameState.players.forEach(playerData => {
+                    // Initialize or update each player based on the received data
+                    // This may include adding new robots to `robots` and setting their position, rotation, and scale
+                    if (!robots[playerData.playerId]) {
+                        // Assuming handleNewPlayer can also initialize existing players
+                        handleNewPlayer(playerData.playerId);
+                    }
+                });
+            })
+            .catch(error => console.error('Error fetching game state:', error));
+    }
 
     window.onresize = function () {
         camera.aspect = window.innerWidth / window.innerHeight;
@@ -123,10 +142,7 @@
     };
 
     function handleRobotMovement(playerId, action, duration) {
-        console.log("Player: ");
-        console.log(playerId);
         let robotToMove = robots[playerId]; // Get the correct robot based on playerId
-
         switch (action) {
             case 'forward':
             case 'backward':
@@ -206,17 +222,35 @@
         if (robot) {
             // Clone the original model
             const robotClone = robot.clone();
-
-            // Optionally, customize the clone (position, scale, etc.)
-            robotClone.position.set(10, 1, 1);
-            robotClone.rotation.set(-10, -10, 0);
-
+            robot.getWorldPosition(robotClone.position);
+            robot.getWorldQuaternion(robotClone.rotation);
+            robot.getWorldScale(robotClone.scale);
+            robotClone.visible = true;
             // Add the clone to the scene
             scene.add(robotClone);
 
+            //notify server about the new player so it can notify all of its clients.
+            notifyServerNewPlayer(playerId, robotClone.position, robotClone.rotation, robotClone.scale);
+
+            console.log(robotClone.position)
+            console.log(robotClone.rotation)
             // Store the clone with the player's ID, similar to previous steps
             robots[playerId] = robotClone;
+            handleRobotMovement(playerId, 'forward', 3);
         }
+    }
+
+    function notifyServerNewPlayer(playerId, position, rotation, scale) {
+        // Assuming you have a function to convert Three.js objects to a simple JSON object
+        const playerData = {
+            playerId: playerId,
+            position: {x: position.x, y: position.y, z: position.z},
+            rotation: {x: rotation._x, y: rotation._y, z: rotation._z, w: rotation._w}, // Quaternion rotation
+            scale: {x: scale.x, y: scale.y, z: scale.z}
+        };
+
+        // Use STOMP client to send this data to the server
+        client.publish({destination: '/online-factory/new-ddss', body: JSON.stringify(playerData)});
     }
 
 
