@@ -18,8 +18,8 @@
 </head>
 
 <body>
-
 <div id="container"></div>
+<span th:text="${playerId}" style="position: absolute; right: 10px; color:white;"></span>
 
 <script type="importmap">
     {
@@ -48,9 +48,15 @@
         brokerURL: 'ws://localhost:8080/online-factory-ws-endpoint',
         onConnect: () => {
             client.subscribe('/topic/move', message => {
-                console.log(`Received: ${message.body}`)
+                console.log(`Received movement command: ${message.body}`)
                 const command = JSON.parse(message.body);
-                handleRobotMovement(command.action, command.duration);
+                handleRobotMovement(command.playerId, command.action, command.duration);
+            });
+
+            client.subscribe('/topic/game-player-update', message => {
+                console.log(`Game player update received: ${message.body}`)
+                const playerId = JSON.parse(message.body);
+                handleNewPlayer(playerId);
             });
         }
     });
@@ -80,6 +86,7 @@
     controls.enableDamping = true;
 
     let robot;
+    let robots = {}; //key value structure to store robots along with the player ids
     let isTweenActive = false; //necessary to avoid drifting sideways and multiple simultaneous commands
     let mixer;
 
@@ -115,22 +122,26 @@
         renderer.render(scene, camera);
     };
 
-    function handleRobotMovement(action, duration) {
+    function handleRobotMovement(playerId, action, duration) {
+        console.log("Player: ");
+        console.log(playerId);
+        let robotToMove = robots[playerId]; // Get the correct robot based on playerId
+
         switch (action) {
             case 'forward':
             case 'backward':
-                moveRobot(action, duration);
+                moveRobot(robotToMove, action, duration);
                 break;
             case 'left':
             case 'right':
-                turnRobot(action, duration);
+                turnRobot(robotToMove, action, duration);
                 break;
         }
     }
 
     //logic to move the robot forward or backward
-    function moveRobot(direction, duration) {
-        if (robot && !isTweenActive) {
+    function moveRobot(robotToMove, direction, duration) {
+        if (robotToMove && !isTweenActive) {
             let i = 0;
 
             //duration is specified in seconds (steps), each step takes 1 second.
@@ -141,10 +152,10 @@
                     let targetPosition = new THREE.Vector3();
                     let tween;
                     targetPosition.set(0, 0, moveAmount);
-                    targetPosition.applyQuaternion(robot.quaternion);
-                    targetPosition.add(robot.position);
+                    targetPosition.applyQuaternion(robotToMove.quaternion);
+                    targetPosition.add(robotToMove.position);
 
-                    tween = new TWEEN.Tween(robot.position).to({
+                    tween = new TWEEN.Tween(robotToMove.position).to({
                         x: targetPosition.x,
                         y: targetPosition.y,
                         z: targetPosition.z
@@ -162,8 +173,8 @@
 
 
     //logic to turn the robot left or right
-    function turnRobot(direction, duration) {
-        if (robot && !isTweenActive) {
+    function turnRobot(robotToMove, direction, duration) {
+        if (robotToMove && !isTweenActive) {
             let i = 0;
             const rotationAmount = direction === 'left' ? Math.PI / 2 : -Math.PI / 2;
 
@@ -172,9 +183,9 @@
                 if (i < duration) {
                     isTweenActive = true;
                     let targetRotation = new THREE.Euler();
-                    targetRotation.set(robot.rotation.x + rotationAmount, 0, 0);
+                    targetRotation.set(robotToMove.rotation.x + rotationAmount, 0, 0);
 
-                    let tween = new TWEEN.Tween(robot.rotation).to({
+                    let tween = new TWEEN.Tween(robotToMove.rotation).to({
                         x: targetRotation.x
                     }, 1000).easing(TWEEN.Easing.Quadratic.Out)
                     .onComplete(() => {
@@ -188,6 +199,23 @@
             };
 
             turnStep(); // start the first turn
+        }
+    }
+
+    function handleNewPlayer(playerId) {
+        if (robot) {
+            // Clone the original model
+            const robotClone = robot.clone();
+
+            // Optionally, customize the clone (position, scale, etc.)
+            robotClone.position.set(10, 1, 1);
+            robotClone.rotation.set(-10, -10, 0);
+
+            // Add the clone to the scene
+            scene.add(robotClone);
+
+            // Store the clone with the player's ID, similar to previous steps
+            robots[playerId] = robotClone;
         }
     }
 

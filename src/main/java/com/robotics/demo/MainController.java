@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.robotics.demo;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Controller;
