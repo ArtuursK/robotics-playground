@@ -94,7 +94,7 @@
 
     let robot;
     let robots = {}; //key value structure to store robots along with the player ids
-    let isTweenActive = false; //necessary to avoid drifting sideways and multiple simultaneous commands
+    let isTweenActive = {}; // Object to track activity per playerId //necessary to avoid drifting sideways and multiple simultaneous commands
     let mixer;
 
     const loader = new GLTFLoader();
@@ -148,13 +148,13 @@
 
     //logic to move the robot forward or backward
     function moveRobot(robotToMove, direction, duration, playerId) {
-        if (robotToMove && !isTweenActive) {
+        if (robotToMove && !isTweenActive[playerId]) {
             let i = 0;
 
             //duration is specified in seconds (steps), each step is equal to 1 second.
             const movingStep = () => {
                 if (i < duration) {
-                    isTweenActive = true;
+                    isTweenActive[playerId] = true; // Set activity for this player
                     const moveAmount = direction === 'forward' ? 1 : -1;
                     let targetPosition = new THREE.Vector3();
                     let tween;
@@ -167,7 +167,7 @@
                         y: targetPosition.y,
                         z: targetPosition.z
                     }, 1000).onComplete(() => {
-                        isTweenActive = false;
+                        isTweenActive[playerId] = false;
                         i++;
                         movingStep(); // call the next turn after the current one completes
                         if (i >= duration) {
@@ -184,8 +184,8 @@
 
     //logic to turn the robot left or right
     function turnRobot(robotToMove, direction, totalTurns, playerId) {
-        if (robotToMove && !isTweenActive) {
-            isTweenActive = true;
+        if (robotToMove && !isTweenActive[playerId]) {
+            isTweenActive[playerId] = true;
             let turnsCompleted = 0;
 
             const performTurn = () => {
@@ -208,7 +208,7 @@
                             if (turnsCompleted < totalTurns) {
                                 performTurn(); // Start next turn
                             } else {
-                                isTweenActive = false; // Allow new turns
+                                isTweenActive[playerId] = false; // Reset for this player
                                 sendUpdatedPositionToServer(robotToMove, playerId, direction, totalTurns);
                             }
                         });

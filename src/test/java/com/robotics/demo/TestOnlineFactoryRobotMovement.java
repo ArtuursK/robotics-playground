@@ -18,14 +18,14 @@ public class TestOnlineFactoryRobotMovement {
             duration; // duration in miliseconds
          */
         String json = "{" +
-                "\"playerId\":\"94565bc2-6154-49b8-8940-e97f9dd2fbc0\", " +
-                "\"action\":\"backward\", " +
-                "\"duration\":5" +
+                "\"playerId\":\"d2046bbf-183b-4b55-81be-10f19323cff0\", " +
+                "\"action\":\"forward\", " +
+                "\"duration\":3" +
                 "}";
         String json2 = "{" +
-                "\"playerId\":\"0d62385d-59cb-452e-9c8d-7f1fea44938c\", " +
-                "\"action\":\"left\", " +
-                "\"duration\":15" +
+                "\"playerId\":\"c369252b-fd19-4ea0-8ebb-0f45454c707f\", " +
+                "\"action\":\"backward\", " +
+                "\"duration\":5" +
                 "}";
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
