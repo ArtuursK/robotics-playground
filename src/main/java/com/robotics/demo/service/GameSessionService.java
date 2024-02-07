@@ -1,7 +1,7 @@
 package com.robotics.demo.service;
 
-import com.robotics.demo.dto.GameState;
 import com.robotics.demo.dto.PlayerData;
+import com.robotics.demo.dto.RobotCommand;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -12,6 +12,8 @@ import java.util.*;
 public class GameSessionService {
 
     private final List<PlayerData> players = new ArrayList<>();
+
+    //TODO: private final List<EnvironmentData> environmentData = new ArrayList<>(); used for storing the positions of game cubes
     private final SimpMessagingTemplate messagingTemplate;
     private static final int MAX_PLAYERS = 3;
 
@@ -24,31 +26,28 @@ public class GameSessionService {
         PlayerData newPlayer = new PlayerData();
         newPlayer.setPlayerId("");
         if (players.size() < MAX_PLAYERS) {
-            String playerId = UUID.randomUUID().toString(); // Auto-generate the UUID
+            String playerId = UUID.randomUUID().toString(); // Auto-generate the playerID (UUID)
             newPlayer.setPlayerId(playerId);
 
-            // You might set default values for position, rotation, and scale here
+            // TODO: set default values for position, rotation, and scale here!!! important because these will get updated
             newPlayer.setPosition(Map.of("x", 0.0f, "y", 0.0f, "z", 0.0f));
             newPlayer.setRotation(Map.of("x", 0.0f, "y", 0.0f, "z", 0.0f, "w", 1.0f));
             newPlayer.setScale(Map.of("x", 1.0f, "y", 1.0f, "z", 1.0f));
 
             players.add(newPlayer); // Assuming 'players' is a List<PlayerData>
-            // Here you might broadcast the updated game state or the addition of the new player to all clients
-            broadcastPlayerJoin(newPlayer);
         }
         return newPlayer; // Indicate that the session is full
     }
 
-    public GameState getCurrentGameState() {
-        GameState gameState = new GameState();
-        gameState.setPlayers(new ArrayList<>(this.players)); // Create a copy of the current players list
-        // Set other game state information as needed
-        return gameState;
+    public void updateGameState(PlayerData playerData) {
+        System.out.println("game state is being updated: " + playerData.toString());
+        //find the player id in the list of players and modify coordinates etc.
+
     }
 
-    private void broadcastPlayerJoin(PlayerData newPlayer) {
-        // Assuming you're using SimpMessagingTemplate for WebSocket communication
-        messagingTemplate.convertAndSend("/topic/game-update", newPlayer);
+
+    public List<PlayerData> getCurrentGamePlayersState() {
+        return players;
     }
 
     public boolean isFull() {
@@ -58,4 +57,6 @@ public class GameSessionService {
     public int getPlayerCount() {
         return players.size();
     }
+
+
 }

@@ -10,14 +10,18 @@ import java.net.http.HttpResponse.BodyHandlers;
 public class TestOnlineFactoryRobotMovement {
 
     public static void main(String[] args) {
-        String url = "http://localhost:8080/online-factory/robot/move";
+        String url = "http://localhost:8080/online-factory/api/move-robot";
 
         /*
             playerId; //e.g. "072fb3fb-6faf-4f9b-b2cf-2c5d79701f22"
             action; // e.g., "forward", "backward", "left", "right"
             duration; // duration in miliseconds
          */
-        String json = "{\"playerId\":\"fbb64a57-514d-4598-a695-5621fe87c97a\", \"action\":\"backward\", \"duration\":2}";
+        String json = "{" +
+                "\"playerId\":\"780a0b75-49fa-405c-8f0f-f10abb9b61d7\", " +
+                "\"action\":\"backward\", " +
+                "\"duration\":5" +
+                "}";
 
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()

@@ -8,16 +8,10 @@ public class PlayerData {
     private Map<String, Float> position;
     private Map<String, Float> rotation;
     private Map<String, Float> scale;
+    private RobotCommand robotCommand;
 
     // Constructor
     public PlayerData() {
-    }
-
-    public PlayerData(String playerId, Map<String, Float> position, Map<String, Float> rotation, Map<String, Float> scale) {
-        this.playerId = playerId;
-        this.position = position;
-        this.rotation = rotation;
-        this.scale = scale;
     }
 
     // Getters and Setters
@@ -53,4 +47,22 @@ public class PlayerData {
         this.scale = scale;
     }
 
+    public RobotCommand getRobotCommand() {
+        return robotCommand;
+    }
+
+    public void setRobotCommand(RobotCommand robotCommand) {
+        this.robotCommand = robotCommand;
+    }
+
+    @Override
+    public String toString() {
+        return "PlayerData{" +
+                "playerId='" + playerId + '\'' +
+                ", position=" + position +
+                ", rotation=" + rotation +
+                ", scale=" + scale +
+                ", robotCommand=" + robotCommand +
+                '}';
+    }
 }

@@ -29,4 +29,13 @@ public class RobotCommand {
     public void setDuration(int duration) {
         this.duration = duration;
     }
+
+    @Override
+    public String toString() {
+        return "RobotCommand{" +
+                "playerId='" + playerId + '\'' +
+                ", action='" + action + '\'' +
+                ", duration=" + duration +
+                '}';
+    }
 }

@@ -30,8 +30,7 @@
         }
     }
 </script>
-
-<script type="module">
+<script th:inline="javascript" type="module">
 
     import * as THREE from 'three';
     import Stats from 'three/addons/libs/stats.module.js';
@@ -47,14 +46,14 @@
     const client = new Client({
         brokerURL: 'ws://localhost:8080/online-factory-ws-endpoint',
         onConnect: () => {
-            client.subscribe('/topic/move', message => {
+            client.subscribe('/topic/move-robot', message => {
                 console.log(`Received movement command: ${message.body}`)
                 const command = JSON.parse(message.body);
                 handleRobotMovement(command.playerId, command.action, command.duration);
             });
 
             client.subscribe('/topic/new-player', message => {
-                console.log(`Game player update received: ${message.body}`)
+                console.log(`A new player has joined: ${message.body}`)
                 handleNewPlayer(message.body);
             });
         }
@@ -86,6 +85,11 @@
 
     let robot;
     let robots = {}; //key value structure to store robots along with the player ids
+
+    /*<![CDATA[*/
+        var initialData = /*[[${temperatureHistoryReadings}]]*/ 'default';
+    /*]]>*/
+
     let isTweenActive = false; //necessary to avoid drifting sideways and multiple simultaneous commands
     let mixer;
 
@@ -108,23 +112,6 @@
         console.error(e);
     });
 
-    if(scene) {
-        // Example URL - adjust according to your actual API endpoint
-        fetch('/online-factory/game-state')
-            .then(response => response.json())
-            .then(gameState => {
-                gameState.players.forEach(playerData => {
-                    // Initialize or update each player based on the received data
-                    // This may include adding new robots to `robots` and setting their position, rotation, and scale
-                    if (!robots[playerData.playerId]) {
-                        // Assuming handleNewPlayer can also initialize existing players
-                        handleNewPlayer(playerData.playerId);
-                    }
-                });
-            })
-            .catch(error => console.error('Error fetching game state:', error));
-    }
-
     window.onresize = function () {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
@@ -143,6 +130,18 @@
 
     function handleRobotMovement(playerId, action, duration) {
         let robotToMove = robots[playerId]; // Get the correct robot based on playerId
+
+        const playerData = {
+            playerId: playerId,
+            position: {x: robotToMove.position.x, y: robotToMove.position.y, z: robotToMove.position.z},
+            rotation: {x: robotToMove.rotation._x, y: robotToMove.rotation._y, z: robotToMove.rotation._z, w: robotToMove.rotation._w}, // Quaternion rotation
+            scale: {x: robotToMove.scale.x, y: robotToMove.scale.y, z: robotToMove.scale.z},
+            lastMoveData: {playerId: playerId, action: action, duration: duration}
+        };
+        console.log("sending playerData to server for gamestate update");
+        // Send the movement data to the server so it broadcasts this to all other connected clients
+        client.publish({destination: '/online-factory/robot-moved', body: JSON.stringify(playerData)});
+
         switch (action) {
             case 'forward':
             case 'backward':
@@ -153,6 +152,8 @@
                 turnRobot(robotToMove, action, duration);
                 break;
         }
+
+
     }
 
     //logic to move the robot forward or backward
@@ -228,32 +229,14 @@
             robotClone.visible = true;
             // Add the clone to the scene
             scene.add(robotClone);
-
-            //notify server about the new player so it can notify all of its clients.
-            notifyServerNewPlayer(playerId, robotClone.position, robotClone.rotation, robotClone.scale);
-
-            console.log(robotClone.position)
-            console.log(robotClone.rotation)
+            //console.log(robotClone.position)
+            //console.log(robotClone.rotation)
             // Store the clone with the player's ID, similar to previous steps
             robots[playerId] = robotClone;
+            //move robot - TODO: in future the second floor door will open and the robot will drive in the main area
             handleRobotMovement(playerId, 'forward', 3);
         }
     }
-
-    function notifyServerNewPlayer(playerId, position, rotation, scale) {
-        // Assuming you have a function to convert Three.js objects to a simple JSON object
-        const playerData = {
-            playerId: playerId,
-            position: {x: position.x, y: position.y, z: position.z},
-            rotation: {x: rotation._x, y: rotation._y, z: rotation._z, w: rotation._w}, // Quaternion rotation
-            scale: {x: scale.x, y: scale.y, z: scale.z}
-        };
-
-        // Use STOMP client to send this data to the server
-        client.publish({destination: '/online-factory/new-ddss', body: JSON.stringify(playerData)});
-    }
-
-
 
 </script>
 </body>
