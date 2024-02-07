@@ -18,19 +18,31 @@ public class TestOnlineFactoryRobotMovement {
             duration; // duration in miliseconds
          */
         String json = "{" +
-                "\"playerId\":\"966dc205-7697-4972-94ca-4e343f1a398e\", " +
-                "\"action\":\"right\", " +
+                "\"playerId\":\"94565bc2-6154-49b8-8940-e97f9dd2fbc0\", " +
+                "\"action\":\"backward\", " +
                 "\"duration\":5" +
                 "}";
-
+        String json2 = "{" +
+                "\"playerId\":\"0d62385d-59cb-452e-9c8d-7f1fea44938c\", " +
+                "\"action\":\"left\", " +
+                "\"duration\":15" +
+                "}";
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("Content-Type", "application/json")
                 .POST(BodyPublishers.ofString(json))
                 .build();
+        HttpRequest request2 = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Content-Type", "application/json")
+                .POST(BodyPublishers.ofString(json2))
+                .build();
         try {
             HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+            System.out.println("Response status code: " + response.statusCode());
+            System.out.println("Response body: " + response.body());
+            response = client.send(request2, BodyHandlers.ofString());
             System.out.println("Response status code: " + response.statusCode());
             System.out.println("Response body: " + response.body());
         } catch (Exception e) {

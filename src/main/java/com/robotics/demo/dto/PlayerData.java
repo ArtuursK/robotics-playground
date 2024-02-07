@@ -6,7 +6,7 @@ public class PlayerData {
 
     private String playerId;
     private Map<String, Float> position;
-    private Map<String, Float> rotation;
+    private Map<String, Float> rotation; //quaternion
     private Map<String, Float> scale;
     private RobotCommand lastRobotCommand;
 
