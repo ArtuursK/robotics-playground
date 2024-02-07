@@ -43,7 +43,6 @@ public class FactoryGameController {
                 System.out.println("Game is ready to be started");
             } else {
                 model.addAttribute("playerId", playerId);
-                messagingTemplate.convertAndSend("/topic/new-player", playerId);
             }
         } else {
             model.addAttribute("playerId", "");
@@ -51,18 +50,14 @@ public class FactoryGameController {
             //  This could redirect to a "session full" page or return a specific message
             //  or add a simple watcher that cannot control any robots
         }
-        // TODO: return current game state:  model.addAttribute("gameState", gameState);
         return "online-factory";
     }
 
     @PostMapping("/online-factory/api/move-robot")
-    public ResponseEntity<?> moveFactoryRobot(@RequestBody RobotCommand robotCommand) {
-        //TODO: get current player state and send that too?
-
+    public ResponseEntity<?> sendCommandToFactoryRobot(@RequestBody RobotCommand robotCommand) {
         //determine who (which team) is sending the command and direct this command to a separate topic (topic with ID)
         messagingTemplate.convertAndSend("/topic/move-robot", robotCommand);
         //the above command will be picked up by all frontends and the respective robot will be moved
-
         return ResponseEntity.ok().build();
     }
 
@@ -72,7 +67,7 @@ public class FactoryGameController {
         System.out.println("Robot " + playerData.getPlayerId() + " is being moved!");
         //Process the move (e.g., update the game state with robot command)
         gameSessionService.updateGameState(playerData);
-        return playerData.getRobotCommand();
+        return playerData.getLastRobotCommand();
     }
 
 

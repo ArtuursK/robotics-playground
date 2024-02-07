@@ -56,6 +56,16 @@
                 console.log(`A new player has joined: ${message.body}`)
                 handleNewPlayer(message.body);
             });
+
+            //used for synchronizing all clients to server state
+            client.subscribe('/topic/state-update', message => {
+                console.log(`Received game state update command: ${message.body}`);
+                const gameState = JSON.parse(message.body); // Assuming gameState is an array of PlayerData
+                gameState.forEach(playerData => {
+                    console.log(`Updating/Creating player: ${playerData.playerId}`)
+                    updateOrCreateRobot(playerData);
+                });
+            });
         }
     });
 
@@ -85,11 +95,6 @@
 
     let robot;
     let robots = {}; //key value structure to store robots along with the player ids
-
-    /*<![CDATA[*/
-        var initialData = /*[[${temperatureHistoryReadings}]]*/ 'default';
-    /*]]>*/
-
     let isTweenActive = false; //necessary to avoid drifting sideways and multiple simultaneous commands
     let mixer;
 
@@ -131,33 +136,20 @@
     function handleRobotMovement(playerId, action, duration) {
         let robotToMove = robots[playerId]; // Get the correct robot based on playerId
 
-        const playerData = {
-            playerId: playerId,
-            position: {x: robotToMove.position.x, y: robotToMove.position.y, z: robotToMove.position.z},
-            rotation: {x: robotToMove.rotation._x, y: robotToMove.rotation._y, z: robotToMove.rotation._z, w: robotToMove.rotation._w}, // Quaternion rotation
-            scale: {x: robotToMove.scale.x, y: robotToMove.scale.y, z: robotToMove.scale.z},
-            lastMoveData: {playerId: playerId, action: action, duration: duration}
-        };
-        console.log("sending playerData to server for gamestate update");
-        // Send the movement data to the server so it broadcasts this to all other connected clients
-        client.publish({destination: '/online-factory/robot-moved', body: JSON.stringify(playerData)});
-
         switch (action) {
             case 'forward':
             case 'backward':
-                moveRobot(robotToMove, action, duration);
+                moveRobot(robotToMove, action, duration, playerId);
                 break;
             case 'left':
             case 'right':
-                turnRobot(robotToMove, action, duration);
+                turnRobot(robotToMove, action, duration, playerId);
                 break;
         }
-
-
     }
 
     //logic to move the robot forward or backward
-    function moveRobot(robotToMove, direction, duration) {
+    function moveRobot(robotToMove, direction, duration, playerId) {
         if (robotToMove && !isTweenActive) {
             let i = 0;
 
@@ -180,6 +172,10 @@
                         isTweenActive = false;
                         i++;
                         movingStep(); // call the next turn after the current one completes
+                        if (i >= duration) {
+                            // Send updated position after the last movement step is completed
+                            sendUpdatedPositionToServer(robotToMove, playerId, direction, duration);
+                        }
                     });
                     tween.start();
                 }
@@ -188,9 +184,8 @@
         }
     }
 
-
     //logic to turn the robot left or right
-    function turnRobot(robotToMove, direction, duration) {
+    function turnRobot(robotToMove, direction, duration, playerId) {
         if (robotToMove && !isTweenActive) {
             let i = 0;
             const rotationAmount = direction === 'left' ? Math.PI / 2 : -Math.PI / 2;
@@ -209,6 +204,10 @@
                         isTweenActive = false;
                         i++;
                         turnStep(); // call the next turn after the current one completes
+                        if (i >= duration) {
+                            // New line added for sending updated position after rotation completes
+                            sendUpdatedPositionToServer(robotToMove, playerId, direction, duration);
+                        }
                     });
 
                     tween.start();
@@ -217,6 +216,19 @@
 
             turnStep(); // start the first turn
         }
+    }
+
+    function sendUpdatedPositionToServer(robotToMove, playerId, action, duration) {
+        const playerData = {
+            playerId: playerId,
+            position: {x: robotToMove.position.x, y: robotToMove.position.y, z: robotToMove.position.z},
+            rotation: {x: robotToMove.rotation._x, y: robotToMove.rotation._y, z: robotToMove.rotation._z, w: robotToMove.rotation._w}, // Quaternion rotation
+            scale: {x: robotToMove.scale.x, y: robotToMove.scale.y, z: robotToMove.scale.z},
+            lastMoveData: {playerId: playerId, action: action, duration: duration}
+        };
+        console.log("sending playerData to server for gamestate update");
+        // Send the movement data to the server so it broadcasts this to all other connected clients
+        client.publish({destination: '/online-factory/robot-moved', body: JSON.stringify(playerData)});
     }
 
     function handleNewPlayer(playerId) {
@@ -234,9 +246,34 @@
             // Store the clone with the player's ID, similar to previous steps
             robots[playerId] = robotClone;
             //move robot - TODO: in future the second floor door will open and the robot will drive in the main area
-            handleRobotMovement(playerId, 'forward', 3);
+            //FIXME: this breaks robot rotation
+            //handleRobotMovement(playerId, 'forward', 3);
+            //instead - sendUpdatedPositionToServer
+            sendUpdatedPositionToServer(robotClone, playerId, "none", 0);
         }
     }
+
+    function updateOrCreateRobot(playerData) {
+        let robo = robots[playerData.playerId];
+        if (!robo) {
+            // Robot doesn't exist, create a new one
+            const robotClone = robot.clone();
+            robotClone.position.set(playerData.position.x, playerData.position.y, playerData.position.z);
+            robotClone.rotation.set(playerData.rotation.x, playerData.rotation.y, playerData.rotation.z);
+            robotClone.scale.set(playerData.scale.x, playerData.scale.y, playerData.scale.z);
+            robotClone.visible = true;
+            scene.add(robotClone);
+            robots[playerData.playerId] = robotClone;
+        } else {
+            // Robot exists, update its position and rotation
+            robo.position.set(playerData.position.x, playerData.position.y, playerData.position.z);
+            // Update rotation - Assuming rotation data is Euler angles
+            robo.rotation.set(playerData.rotation.x, playerData.rotation.y, playerData.rotation.z);
+            // Update scale
+            robo.scale.set(playerData.scale.x, playerData.scale.y, playerData.scale.z);
+        }
+    }
+
 
 </script>
 </body>

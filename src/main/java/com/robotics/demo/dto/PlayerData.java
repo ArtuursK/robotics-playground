@@ -8,7 +8,7 @@ public class PlayerData {
     private Map<String, Float> position;
     private Map<String, Float> rotation;
     private Map<String, Float> scale;
-    private RobotCommand robotCommand;
+    private RobotCommand lastRobotCommand;
 
     // Constructor
     public PlayerData() {
@@ -47,12 +47,12 @@ public class PlayerData {
         this.scale = scale;
     }
 
-    public RobotCommand getRobotCommand() {
-        return robotCommand;
+    public RobotCommand getLastRobotCommand() {
+        return lastRobotCommand;
     }
 
-    public void setRobotCommand(RobotCommand robotCommand) {
-        this.robotCommand = robotCommand;
+    public void setLastRobotCommand(RobotCommand lastRobotCommand) {
+        this.lastRobotCommand = lastRobotCommand;
     }
 
     @Override
@@ -62,7 +62,7 @@ public class PlayerData {
                 ", position=" + position +
                 ", rotation=" + rotation +
                 ", scale=" + scale +
-                ", robotCommand=" + robotCommand +
+                ", lastRobotCommand=" + lastRobotCommand +
                 '}';
     }
 }

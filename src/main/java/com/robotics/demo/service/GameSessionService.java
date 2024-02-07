@@ -1,9 +1,9 @@
 package com.robotics.demo.service;
 
 import com.robotics.demo.dto.PlayerData;
-import com.robotics.demo.dto.RobotCommand;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -35,16 +35,39 @@ public class GameSessionService {
             newPlayer.setScale(Map.of("x", 1.0f, "y", 1.0f, "z", 1.0f));
 
             players.add(newPlayer); // Assuming 'players' is a List<PlayerData>
+
+            if(players.size() > 1) {
+                messagingTemplate.convertAndSend("/topic/new-player", playerId);
+            }
         }
         return newPlayer; // Indicate that the session is full
     }
 
     public void updateGameState(PlayerData playerData) {
         System.out.println("game state is being updated: " + playerData.toString());
-        //find the player id in the list of players and modify coordinates etc.
+        for(PlayerData playerData1 : players) {
+            System.out.println(playerData1);
+        }
 
+        //find the player id in the list of players and modify coordinates etc.
+        players.forEach( pd -> {
+            if(pd.getPlayerId().equals(playerData.getPlayerId())){
+                pd.setPosition(playerData.getPosition());
+                pd.setRotation(playerData.getRotation());
+                pd.setScale(playerData.getScale());
+                pd.setLastRobotCommand(playerData.getLastRobotCommand());
+            }
+        });
     }
 
+    /**
+     * A scheduled method triggered every ? seconds to broadcast current game state to all players so that they are in sync.
+     */
+    @Scheduled(fixedRate = 1000)
+    public void broadCastCurrentGameStateToAllClients() {
+        //System.out.println("_____________ The time is now " + System.currentTimeMillis());
+        messagingTemplate.convertAndSend("/topic/state-update", getCurrentGamePlayersState());
+    }
 
     public List<PlayerData> getCurrentGamePlayersState() {
         return players;
