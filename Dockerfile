@@ -1,5 +1,3 @@
-# Start with a base image that includes Maven and the JDK
-# to build your application
 FROM maven:3.8.4-openjdk-17 as build
 
 # Copy your source code into the image
