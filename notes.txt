@@ -3,17 +3,6 @@
 
 
 
-echo <PERSONAL_ACCESS_TOKEN> | docker login ghcr.io -u ArtuursK --password-stdin
-
-
-
-idea - online
-4 teams - sending robot commands through API
-are competing by controlling robots to do some tasks.
-For example in this robot environment:
-https://sketchfab.com/3d-models/geometry-panic-factory-be628e5de2ad45e7ac8c436217234342
-
-
 To use image published to ghcr:
 Login where docker pull will be runned:
 echo <PERSONAL_ACCESS_TOKEN> | docker login ghcr.io -u <USERNAME> --password-stdin
