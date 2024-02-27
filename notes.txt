@@ -1,5 +1,12 @@
 
 
+
+
+
+echo <PERSONAL_ACCESS_TOKEN> | docker login ghcr.io -u ArtuursK --password-stdin
+
+
+
 idea - online
 4 teams - sending robot commands through API
 are competing by controlling robots to do some tasks.

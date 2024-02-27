@@ -5,7 +5,7 @@ version: '3.8'
 
 services:
   myservice:
-    image: ghcr.io/ArtuursK/robotics-playground:latest
+    image: ghcr.io/artuursk/robotics-playground:main
     ports:
       - "8080:8080"
     environment:

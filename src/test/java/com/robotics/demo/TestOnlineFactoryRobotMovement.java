@@ -18,9 +18,9 @@ public class TestOnlineFactoryRobotMovement {
             duration; // duration in miliseconds
          */
         String json = "{" +
-                "\"playerId\":\"d2046bbf-183b-4b55-81be-10f19323cff0\", " +
-                "\"action\":\"forward\", " +
-                "\"duration\":3" +
+                "\"playerId\":\"ae49d65d-2d96-4d73-8cf4-e32ff8170af8\", " +
+                "\"action\":\"backward\", " +
+                "\"duration\":1" +
                 "}";
         String json2 = "{" +
                 "\"playerId\":\"c369252b-fd19-4ea0-8ebb-0f45454c707f\", " +
